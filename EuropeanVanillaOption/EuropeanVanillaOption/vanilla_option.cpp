@@ -1,7 +1,7 @@
-#include "VanillaOption.h"
+#include "vanilla_option.h"
 
+#include <cmath>
 #include <iostream>
-#include <valarray>
 
 VanillaOption::VanillaOption() {
   K = 100.0;  // strike price

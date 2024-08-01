@@ -133,11 +133,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="EuropeanVanillaOption.cpp" />
-    <ClCompile Include="VanillaOption.cpp" />
+    <ClCompile Include="european_options.cpp" />
+    <ClCompile Include="pay_off_call.cpp" />
+    <ClCompile Include="pay_off_double_digital.cpp" />
+    <ClCompile Include="pay_off_put.cpp" />
+    <ClCompile Include="vanilla_option.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="VanillaOption.h" />
+    <ClInclude Include="pay_off.h" />
+    <ClInclude Include="pay_off_call.h" />
+    <ClInclude Include="pay_off_double_digital.h" />
+    <ClInclude Include="pay_off_put.h" />
+    <ClInclude Include="vanilla_option.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

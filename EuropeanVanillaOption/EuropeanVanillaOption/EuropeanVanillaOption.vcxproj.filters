@@ -15,15 +15,36 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="EuropeanVanillaOption.cpp">
+    <ClCompile Include="european_options.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VanillaOption.cpp">
+    <ClCompile Include="vanilla_option.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pay_off_call.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pay_off_double_digital.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pay_off_put.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="VanillaOption.h">
+    <ClInclude Include="vanilla_option.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pay_off.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pay_off_call.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pay_off_put.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pay_off_double_digital.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
