@@ -2,7 +2,6 @@
 #include <chrono>
 #include <functional>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <random>
 #include <thread>
@@ -23,93 +22,108 @@ class Order {
   int quantity;
 };
 
-class OrderBook {
+class BidBook {
  private:
-  std::vector<double> bidPrices;
-  std::vector<double> bidQuantities;
-
-  std::vector<double> askPrices;
-  std::vector<double> askQuantities;
+  std::vector<double> prices;
+  std::vector<int> quantities;
 
  public:
   void addOrder(const std::shared_ptr<Order>& order) {
-    if (order->side == OrderSide::BUY) {
-      addBid(order->price, order->quantity);
+    const auto& it = std::lower_bound(prices.begin(), prices.end(),
+                                      order->price, std::greater<>());
+    const size_t& index = std::distance(prices.begin(), it);
+    if (it != prices.end() && *it == order->price) {
+      quantities[index] += order->quantity;
     } else {
-      addAsk(order->price, order->quantity);
+      prices.insert(it, order->price);
+      quantities.insert(quantities.begin() + index, order->quantity);
     }
   }
 
-  void removeOrder(const std::shared_ptr<Order>& order) {
-    if (order->side == OrderSide::BUY) {
-      removeBid(order->price, order->quantity);
-    } else {
-      removeAsk(order->price, order->quantity);
+  void removeOrder(double price, int quantity) {
+    const auto& it = std::find(prices.begin(), prices.end(), price);
+    if (it != prices.end()) {
+      const size_t& index = std::distance(prices.begin(), it);
+      quantities[index] -= quantity;
+      if (quantities[index] <= 0) {
+        prices.erase(it);
+        quantities.erase(quantities.begin() + index);
+      }
     }
   }
 
-  std::vector<std::pair<double, int>> getTopOfBook(const OrderSide side,
-                                                   const int levels = 5) const {
+  std::vector<std::pair<double, int>> getTopOfBook(int levels = 5) const {
     std::vector<std::pair<double, int>> result;
-    if (side == OrderSide::BUY) {
-      for (size_t i = 0; i < bidPrices.size() && result.size() < levels; ++i) {
-        result.emplace_back(bidPrices[i], bidQuantities[i]);
-      }
-    } else {
-      for (size_t i = 0; i < askPrices.size() && result.size() < levels; ++i) {
-        result.emplace_back(askPrices[i], askQuantities[i]);
-      }
+    for (size_t i = 0; i < prices.size() && result.size() < levels; ++i) {
+      result.emplace_back(prices[i], quantities[i]);
     }
     return result;
   }
 
+  bool isEmpty() const { return prices.empty(); }
+  double GetPrice() const { return prices[0]; }
+};
+
+class AskBook {
  private:
-  void addBid(double price, int quantity) {
-    const auto it = std::lower_bound(bidPrices.begin(), bidPrices.end(), price,
-                                     std::greater<>());
-    const size_t index = std::distance(bidPrices.begin(), it);
-    if (it != bidPrices.end() && *it == price) {
-      bidQuantities[index] += quantity;
+  std::vector<double> prices;
+  std::vector<int> quantities;
+
+ public:
+  void addOrder(const std::shared_ptr<Order>& order) {
+    const auto& it =
+        std::lower_bound(prices.begin(), prices.end(), order->price);
+    const size_t& index = std::distance(prices.begin(), it);
+    if (it != prices.end() && *it == order->price) {
+      quantities[index] += order->quantity;
     } else {
-      bidPrices.insert(it, price);
-      bidQuantities.insert(bidQuantities.begin() + index, quantity);
+      prices.insert(it, order->price);
+      quantities.insert(quantities.begin() + index, order->quantity);
     }
   }
 
-  void addAsk(double price, int quantity) {
-    const auto it = std::lower_bound(askPrices.begin(), askPrices.end(), price);
-    const size_t index = std::distance(askPrices.begin(), it);
-    if (it != askPrices.end() && *it == price) {
-      askQuantities[index] += quantity;
-    } else {
-      askPrices.insert(it, price);
-      askQuantities.insert(askQuantities.begin() + index, quantity);
-    }
-  }
-
-  void removeBid(double price, int quantity) {
-    const auto it = std::find(bidPrices.begin(), bidPrices.end(), price);
-    if (it != bidPrices.end()) {
-      const size_t index = std::distance(bidPrices.begin(), it);
-      bidQuantities[index] -= quantity;
-      if (bidQuantities[index] <= 0) {
-        bidPrices.erase(it);
-        bidQuantities.erase(bidQuantities.begin() + index);
+  void removeOrder(double price, int quantity) {
+    const auto& it = std::find(prices.begin(), prices.end(), price);
+    if (it != prices.end()) {
+      const size_t& index = std::distance(prices.begin(), it);
+      quantities[index] -= quantity;
+      if (quantities[index] <= 0) {
+        prices.erase(it);
+        quantities.erase(quantities.begin() + index);
       }
     }
   }
 
-  void removeAsk(double price, int quantity) {
-    const auto it = std::find(askPrices.begin(), askPrices.end(), price);
-    if (it != askPrices.end()) {
-      const size_t index = std::distance(askPrices.begin(), it);
-      askQuantities[index] -= quantity;
-      if (askQuantities[index] <= 0) {
-        askPrices.erase(it);
-        askQuantities.erase(askQuantities.begin() + index);
-      }
+  std::vector<std::pair<double, int>> getTopOfBook(int levels = 5) const {
+    std::vector<std::pair<double, int>> result;
+    for (size_t i = 0; i < prices.size() && result.size() < levels; ++i) {
+      result.emplace_back(prices[i], quantities[i]);
     }
+    return result;
   }
+
+  bool isEmpty() const { return prices.empty(); }
+  double GetPrice() const { return prices[0]; }
+};
+
+class OrderBook {
+ private:
+  BidBook bidBook;
+  AskBook askBook;
+
+ public:
+  void addOrder(const std::shared_ptr<Order>& order) {
+    order->side == OrderSide::BUY ? bidBook.addOrder(order)
+                                  : askBook.addOrder(order);
+  }
+
+  void removeOrder(const std::shared_ptr<Order>& order) {
+    order->side == OrderSide::BUY
+        ? bidBook.removeOrder(order->price, order->quantity)
+        : askBook.removeOrder(order->price, order->quantity);
+  }
+  BidBook GetBidBook() { return bidBook; }
+  AskBook GetAskBook() { return askBook; }
 };
 
 class ExecutionEngine {
@@ -126,15 +140,15 @@ class ExecutionEngine {
 
   void processOrdersInParallel(
       const std::vector<std::shared_ptr<Order>>& orders) {
-    const int num_threads = std::thread::hardware_concurrency();
+    const int& num_threads = std::thread::hardware_concurrency();
     std::vector<std::thread> threads;
-    auto process_chunk = [&](const int start, const int end) {
+    auto process_chunk = [&](const int& start, const int& end) {
       for (int i = start; i < end; ++i) {
         processOrder(orders[i]);
       }
     };
 
-    const int chunk_size = orders.size() / num_threads;
+    const int& chunk_size = orders.size() / num_threads;
     for (int i = 0; i < num_threads; ++i) {
       int start = i * chunk_size;
       int end = (i == num_threads - 1) ? orders.size() : start + chunk_size;
@@ -193,9 +207,9 @@ class ExecutionEngine {
   }
 
   void executeMarketOrder(const std::shared_ptr<Order>& order) {
-    const auto counterBook = (order->side == OrderSide::BUY)
-                                 ? orderBook.getTopOfBook(OrderSide::SELL)
-                                 : orderBook.getTopOfBook(OrderSide::BUY);
+    const auto& counterBook = (order->side == OrderSide::BUY)
+                                  ? orderBook.GetBidBook().getTopOfBook()
+                                  : orderBook.GetAskBook().getTopOfBook();
 
     if (counterBook.empty()) {
       std::cout << "No orders in the book to match against." << '\n';
@@ -207,7 +221,7 @@ class ExecutionEngine {
     for (const auto& level : counterBook) {
       if (remainingQuantity <= 0) break;
 
-      const int executedQuantity = std::min(remainingQuantity, level.second);
+      const int& executedQuantity = std::min(remainingQuantity, level.second);
       remainingQuantity -= executedQuantity;
 
       std::cout << "Executed " << executedQuantity << " at price "
@@ -222,20 +236,18 @@ class ExecutionEngine {
   }
 
   void executeLimitOrder(const std::shared_ptr<Order>& order) {
-    const auto counterBook = (order->side == OrderSide::BUY)
-                                 ? orderBook.getTopOfBook(OrderSide::SELL)
-                                 : orderBook.getTopOfBook(OrderSide::BUY);
+    const auto& bidBook = orderBook.GetBidBook();
+    const auto& askBook = orderBook.GetBidBook();
 
-    if (counterBook.empty()) {
+    if (bidBook.isEmpty() && askBook.isEmpty()) {
       std::cout << "Limit order added to the book: " << order->id << '\n';
       orderBook.addOrder(order);
       return;
     }
 
-    const bool canExecute = (order->side == OrderSide::BUY &&
-                             order->price >= counterBook[0].first) ||
-                            (order->side == OrderSide::SELL &&
-                             order->price <= counterBook[0].first);
+    const bool& canExecute =
+        (order->side == OrderSide::BUY && order->price >= bidBook.GetPrice()) ||
+        (order->side == OrderSide::SELL && order->price <= askBook.GetPrice());
 
     if (canExecute) {
       executeMarketOrder(order);
@@ -246,10 +258,11 @@ class ExecutionEngine {
   }
 
   std::shared_ptr<Order> generateRandomOrder() {
-    OrderType type = (rng() % 2 == 0) ? OrderType::MARKET : OrderType::LIMIT;
-    OrderSide side = (rng() % 2 == 0) ? OrderSide::BUY : OrderSide::SELL;
-    double price = 100.0 + (rng() % 1000) / 100.0;
-    int quantity = 1 + (rng() % 100);
+    const OrderType& type =
+        (rng() % 2 == 0) ? OrderType::MARKET : OrderType::LIMIT;
+    const OrderSide& side = (rng() % 2 == 0) ? OrderSide::BUY : OrderSide::SELL;
+    const double& price = 100.0 + (rng() % 1000) / 100.0;
+    const int& quantity = 1 + (rng() % 100);
 
     return std::make_shared<Order>(nextOrderId++, type, side, price, quantity);
   }
@@ -264,15 +277,15 @@ class ExecutionEngine {
     printOrderBookStatus();
   }
 
-  void printOrderBookStatus() const {
+  void printOrderBookStatus() {
     std::cout << "Order Book Status:" << '\n';
     std::cout << "Bids:" << '\n';
-    for (const auto& level : orderBook.getTopOfBook(OrderSide::BUY)) {
+    for (const auto& level : orderBook.GetBidBook().getTopOfBook()) {
       std::cout << "  Price: " << level.first << ", Quantity: " << level.second
                 << '\n';
     }
     std::cout << "Asks:" << '\n';
-    for (const auto& level : orderBook.getTopOfBook(OrderSide::SELL)) {
+    for (const auto& level : orderBook.GetAskBook().getTopOfBook()) {
       std::cout << "  Price: " << level.first << ", Quantity: " << level.second
                 << '\n';
     }
@@ -282,9 +295,9 @@ class ExecutionEngine {
 
 int main() {
   ExecutionEngine engine;
-  const auto start_time = std::chrono::high_resolution_clock::now();
+  const auto& start_time = std::chrono::high_resolution_clock::now();
   engine.simulateTrading(10000);
-  const auto end_time = std::chrono::high_resolution_clock::now();
+  const auto& end_time = std::chrono::high_resolution_clock::now();
   std::cout << "Simulation took "
             << std::chrono::duration_cast<std::chrono::milliseconds>(end_time -
                                                                      start_time)
