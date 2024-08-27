@@ -2,9 +2,9 @@
 #include <chrono>
 #include <functional>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <random>
+#include <unordered_map>
 #include <vector>
 
 enum class OrderType { MARKET, LIMIT, STOP };
@@ -24,8 +24,8 @@ class Order {
 
 class OrderBook {
  private:
-  std::map<double, std::vector<std::shared_ptr<Order>>, std::greater<>> bids;
-  std::map<double, std::vector<std::shared_ptr<Order>>> asks;
+  std::unordered_map<double, std::vector<std::shared_ptr<Order>>> bids;
+  std::unordered_map<double, std::vector<std::shared_ptr<Order>>> asks;
 
  public:
   void addOrder(const std::shared_ptr<Order>& order) {
