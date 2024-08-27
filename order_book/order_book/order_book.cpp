@@ -25,33 +25,26 @@ class Order {
 
 class OrderBook {
  private:
-  std::map<double, std::vector<std::shared_ptr<Order>>, std::greater<>> bids;
-  std::map<double, std::vector<std::shared_ptr<Order>>> asks;
+  std::vector<double> bidPrices;
+  std::vector<double> bidQuantities;
+
+  std::vector<double> askPrices;
+  std::vector<double> askQuantities;
 
  public:
   void addOrder(const std::shared_ptr<Order>& order) {
     if (order->side == OrderSide::BUY) {
-      bids[order->price].push_back(order);
+      addBid(order->price, order->quantity);
     } else {
-      asks[order->price].push_back(order);
+      addAsk(order->price, order->quantity);
     }
   }
 
   void removeOrder(const std::shared_ptr<Order>& order) {
-    auto& orderList = (order->side == OrderSide::BUY) ? bids[order->price]
-                                                      : asks[order->price];
-    orderList.erase(std::remove_if(orderList.begin(), orderList.end(),
-                                   [&](const std::shared_ptr<Order>& o) {
-                                     return o->id == order->id;
-                                   }),
-                    orderList.end());
-    // If the list is empty after removal, delete the price level
-    if (orderList.empty()) {
-      if (order->side == OrderSide::BUY) {
-        bids.erase(order->price);
-      } else {
-        asks.erase(order->price);
-      }
+    if (order->side == OrderSide::BUY) {
+      removeBid(order->price, order->quantity);
+    } else {
+      removeAsk(order->price, order->quantity);
     }
   }
 
@@ -59,29 +52,63 @@ class OrderBook {
                                                    const int levels = 5) const {
     std::vector<std::pair<double, int>> result;
     if (side == OrderSide::BUY) {
-      for (const auto& level : bids) {
-        if (result.size() >= levels) break;
-        int totalQuantity = 0;
-        for (const auto& order : level.second) {
-          totalQuantity += order->quantity;
-        }
-        result.emplace_back(level.first, totalQuantity);
+      for (size_t i = 0; i < bidPrices.size() && result.size() < levels; ++i) {
+        result.emplace_back(bidPrices[i], bidQuantities[i]);
       }
-    } else {  // OrderSide::SELL
-      for (const auto& level : asks) {
-        if (result.size() >= levels) break;
-        int totalQuantity = 0;
-        for (const auto& order : level.second) {
-          totalQuantity += order->quantity;
-        }
-        result.emplace_back(level.first, totalQuantity);
+    } else {
+      for (size_t i = 0; i < askPrices.size() && result.size() < levels; ++i) {
+        result.emplace_back(askPrices[i], askQuantities[i]);
       }
     }
     return result;
   }
 
-  bool isEmpty(const OrderSide side) const {
-    return (side == OrderSide::BUY) ? bids.empty() : asks.empty();
+ private:
+  void addBid(double price, int quantity) {
+    const auto it = std::lower_bound(bidPrices.begin(), bidPrices.end(), price,
+                                     std::greater<>());
+    const size_t index = std::distance(bidPrices.begin(), it);
+    if (it != bidPrices.end() && *it == price) {
+      bidQuantities[index] += quantity;
+    } else {
+      bidPrices.insert(it, price);
+      bidQuantities.insert(bidQuantities.begin() + index, quantity);
+    }
+  }
+
+  void addAsk(double price, int quantity) {
+    const auto it = std::lower_bound(askPrices.begin(), askPrices.end(), price);
+    const size_t index = std::distance(askPrices.begin(), it);
+    if (it != askPrices.end() && *it == price) {
+      askQuantities[index] += quantity;
+    } else {
+      askPrices.insert(it, price);
+      askQuantities.insert(askQuantities.begin() + index, quantity);
+    }
+  }
+
+  void removeBid(double price, int quantity) {
+    const auto it = std::find(bidPrices.begin(), bidPrices.end(), price);
+    if (it != bidPrices.end()) {
+      const size_t index = std::distance(bidPrices.begin(), it);
+      bidQuantities[index] -= quantity;
+      if (bidQuantities[index] <= 0) {
+        bidPrices.erase(it);
+        bidQuantities.erase(bidQuantities.begin() + index);
+      }
+    }
+  }
+
+  void removeAsk(double price, int quantity) {
+    const auto it = std::find(askPrices.begin(), askPrices.end(), price);
+    if (it != askPrices.end()) {
+      const size_t index = std::distance(askPrices.begin(), it);
+      askQuantities[index] -= quantity;
+      if (askQuantities[index] <= 0) {
+        askPrices.erase(it);
+        askQuantities.erase(askQuantities.begin() + index);
+      }
+    }
   }
 };
 
