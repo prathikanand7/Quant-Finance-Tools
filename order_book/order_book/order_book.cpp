@@ -2,9 +2,10 @@
 #include <chrono>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <random>
-#include <unordered_map>
+#include <thread>
 #include <vector>
 
 enum class OrderType { MARKET, LIMIT, STOP };
@@ -24,8 +25,8 @@ class Order {
 
 class OrderBook {
  private:
-  std::unordered_map<double, std::vector<std::shared_ptr<Order>>> bids;
-  std::unordered_map<double, std::vector<std::shared_ptr<Order>>> asks;
+  std::map<double, std::vector<std::shared_ptr<Order>>, std::greater<>> bids;
+  std::map<double, std::vector<std::shared_ptr<Order>>> asks;
 
  public:
   void addOrder(const std::shared_ptr<Order>& order) {
@@ -55,7 +56,7 @@ class OrderBook {
   }
 
   std::vector<std::pair<double, int>> getTopOfBook(const OrderSide side,
-                                                   const int levels = 5) {
+                                                   const int levels = 5) const {
     std::vector<std::pair<double, int>> result;
     if (side == OrderSide::BUY) {
       for (const auto& level : bids) {
@@ -96,6 +97,28 @@ class ExecutionEngine {
   ExecutionEngine()
       : rng(std::chrono::steady_clock::now().time_since_epoch().count()) {}
 
+  void processOrdersInParallel(
+      const std::vector<std::shared_ptr<Order>>& orders) {
+    const int num_threads = std::thread::hardware_concurrency();
+    std::vector<std::thread> threads;
+    auto process_chunk = [&](const int start, const int end) {
+      for (int i = start; i < end; ++i) {
+        processOrder(orders[i]);
+      }
+    };
+
+    const int chunk_size = orders.size() / num_threads;
+    for (int i = 0; i < num_threads; ++i) {
+      int start = i * chunk_size;
+      int end = (i == num_threads - 1) ? orders.size() : start + chunk_size;
+      threads.emplace_back(process_chunk, start, end);
+    }
+
+    for (auto& thread : threads) {
+      thread.join();
+    }
+  }
+
   void processOrder(const std::shared_ptr<Order>& order) {
     if (order->type == OrderType::MARKET) {
       executeMarketOrder(order);
@@ -108,15 +131,15 @@ class ExecutionEngine {
   }
 
   void addStopOrder(const std::shared_ptr<Order>& order) {
-    stopOrders.push_back(order);
     std::cout << "Stop order added: " << order->id << " at price "
               << order->price << '\n';
+    stopOrders.push_back(order);
   }
 
   void checkStopOrders() {
     auto it = stopOrders.begin();
     while (it != stopOrders.end()) {
-      const auto order = *it;
+      const auto& order = *it;
       bool triggered = false;
 
       if (order->side == OrderSide::BUY && lastTradePrice >= order->price) {
@@ -177,8 +200,8 @@ class ExecutionEngine {
                                  : orderBook.getTopOfBook(OrderSide::BUY);
 
     if (counterBook.empty()) {
-      orderBook.addOrder(order);
       std::cout << "Limit order added to the book: " << order->id << '\n';
+      orderBook.addOrder(order);
       return;
     }
 
@@ -190,8 +213,8 @@ class ExecutionEngine {
     if (canExecute) {
       executeMarketOrder(order);
     } else {
-      orderBook.addOrder(order);
       std::cout << "Limit order added to the book: " << order->id << '\n';
+      orderBook.addOrder(order);
     }
   }
 
@@ -205,15 +228,16 @@ class ExecutionEngine {
   }
 
   void simulateTrading(int numOrders) {
+    std::vector<std::shared_ptr<Order>> orders;
     for (int i = 0; i < numOrders; ++i) {
-      const auto order = generateRandomOrder();
-      std::cout << "Processing order: " << order->id << '\n';
-      processOrder(order);
-      printOrderBookStatus();
+      orders.emplace_back(generateRandomOrder());
+      std::cout << "Processing order: " << orders.back()->id << '\n';
     }
+    processOrdersInParallel(orders);
+    printOrderBookStatus();
   }
 
-  void printOrderBookStatus() {
+  void printOrderBookStatus() const {
     std::cout << "Order Book Status:" << '\n';
     std::cout << "Bids:" << '\n';
     for (const auto& level : orderBook.getTopOfBook(OrderSide::BUY)) {
