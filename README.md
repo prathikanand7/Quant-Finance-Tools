@@ -53,7 +53,7 @@ After compiling, you can run the application:
 
 The application will simulate trading with 10,000 random orders and display the status of the order book and the execution of orders in the console.
 
-### How It Works
+## How It Works
 - **Order Generation:** Random orders are generated and processed in parallel using multiple threads. The `ExecutionEngine` class handles this processing.
 - **Order Matching:** Market and limit orders are matched against the existing order book, and stop orders are triggered based on the last trade price.
 - **Multi-Threading:** The `processOrdersInParallel` function divides the order processing workload across multiple threads, allowing the simulation to run efficiently on multi-core systems.
