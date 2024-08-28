@@ -40,13 +40,15 @@ The project is organized into the following files:
    ```
 
 2. Compile the project:
-    ```g++ main.cpp order.cpp bid_book.cpp ask_book.cpp order_book.cpp execution_engine.cpp -o trading_simulation -lpthread
-    ```
+   ```bash
+   g++ main.cpp order.cpp bid_book.cpp ask_book.cpp order_book.cpp execution_engine.cpp -o trading_simulation -lpthread
+   ```
 
 3. Running the Application
 After compiling, you can run the application:
-```./trading_simulation
-```
+   ```bash
+   ./trading_simulation
+   ```
 4. Or skip all the above mentioned steps and open the `order_book.sln` in `VS 17.8.3` and above and run the application in `Release`.
 
 The application will simulate trading with 10,000 random orders and display the status of the order book and the execution of orders in the console.
