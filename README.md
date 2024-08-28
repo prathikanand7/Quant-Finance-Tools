@@ -47,7 +47,7 @@ The project is organized into the following files:
 3. Running the Application
 After compiling, you can run the application:
    ```bash
-   /trading_simulation
+   ./trading_simulation
    ```
 4. Or skip all the above mentioned steps and open the `order_book.sln` in `VS 17.8.3` and above and run the application in `Release`.
 
