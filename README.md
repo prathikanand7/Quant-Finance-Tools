@@ -59,4 +59,4 @@ The application will simulate trading with 10,000 random orders and display the 
 - **Multi-Threading:** The `processOrdersInParallel` function divides the order processing workload across multiple threads, allowing the simulation to run efficiently on multi-core systems.
 
 License
-This project is licensed under the MIT License - see the @LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/prathikanand7/Quant-finance/blob/main/LICENSE.txt) file for details.
