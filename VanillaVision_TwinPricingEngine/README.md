@@ -2,7 +2,7 @@
 
 ## **Overview**
 
-VanillaVision is a high-performance C++ application designed to price European vanilla options using two distinct methods: the Black-Scholes analytical solution and Monte Carlo simulation.
+**VanillaVision** is a high-performance C++ application designed to price European vanilla options using two distinct methods: the Black-Scholes analytical solution and Monte Carlo simulation.
 This twin-engine approach allows for precise pricing and method comparison, making it an invaluable tool for quantitative analysts, financial engineers, and risk managers.
 
 The application leverages the power of parallel computation by comparing single-threaded and multi-threaded Monte Carlo simulations, highlighting the difference in performance and accuracy.
