@@ -24,6 +24,7 @@
     <ProjectGuid>{4af74f2d-e5e7-43c2-a7e6-e9da286b5e41}</ProjectGuid>
     <RootNamespace>EuropeanVanillaOption</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>VanillaVision_TwinPricingEngine</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

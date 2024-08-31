@@ -49,7 +49,8 @@ After compiling, you can run the application:
    ```bash
    ./trading_simulation
    ```
-4. Or skip all the above mentioned steps and open the `order_book.sln` in `VS 17.8.3` and above and run the application in `Release`.
+4. Or skip all the above mentioned steps and open the `order_book.sln` in `VS 17.8.3` and above and ensure that you are building for the correct platform (`x64` or `x86`).
+5. Run the application in `Release` mode.
 
 The application will simulate trading with 10,000 random orders and display the status of the order book and the execution of orders in the console.
 
@@ -57,6 +58,13 @@ The application will simulate trading with 10,000 random orders and display the 
 - **Order Generation:** Random orders are generated and processed in parallel using multiple threads. The `ExecutionEngine` class handles this processing.
 - **Order Matching:** Market and limit orders are matched against the existing order book, and stop orders are triggered based on the last trade price.
 - **Multi-Threading:** The `processOrdersInParallel` function divides the order processing workload across multiple threads, allowing the simulation to run efficiently on multi-core systems.
+
+
+### **Acknowledgments**
+
+- Tomer Tzadiko. "Quant Developer Youtuber". Videos on Quant Development.
+- Carl Cook. "Automated Trading Systems in C++". CppCon 2016 youtube video.
+
 
 License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/prathikanand7/Quant-finance/blob/main/LICENSE.txt) file for details.
