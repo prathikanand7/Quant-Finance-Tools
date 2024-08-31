@@ -15,19 +15,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="european_options.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="vanilla_option.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pay_off_call.cpp">
+    <ClCompile Include="pay_off.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pay_off_double_digital.cpp">
+    <ClCompile Include="monte_carlo_simulation_engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pay_off_put.cpp">
+    <ClCompile Include="black_scholes_model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,13 +38,10 @@
     <ClInclude Include="pay_off.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pay_off_call.h">
+    <ClInclude Include="monte_carlo_simulation_engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pay_off_put.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pay_off_double_digital.h">
+    <ClInclude Include="black_scholes_model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
